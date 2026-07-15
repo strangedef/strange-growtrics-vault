@@ -1,0 +1,1 @@
+So conceptually: tenant = organization, and tenant_id is how the backend scopes every read/write to "only this org's data."
