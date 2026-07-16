@@ -86,3 +86,30 @@ For each discovered vendor, try in order:
 3. **Changelog/docs scraping** — fallback when no spec exists, diff docs page text over time
 
 → Output: **Schema Snapshot** per endpoint you actually use (not vendor's full API — just your subset)
+
+#### Approach 2: Traffic-Based Inference
+
+The idea: capture real request/response pairs, then reverse-engineer a schema from the patterns you see across many samples.
+
+**How it works, step by step:**
+
+1. **Group by endpoint.** Bucket captured calls by `method + path pattern` (e.g., `GET /users/{id}` — normalize `/users/123` and `/users/456` into one bucket by detecting numeric/UUID path segments).
+2. **Collect N samples per endpoint.** One response isn't enough — you need variety (different users, empty results, error cases) to know what's _always_ there vs _sometimes_ there.
+3. **Infer field types.** For each field across all samples, record the observed type(s): string, number, boolean, array, object, null.
+    - If a field is always a string → type: string
+    - If a field is sometimes a number, sometimes null → type: number, nullable: true
+    - If types conflict wildly (string in one response, object in another) → flag it, that's often a versioning issue or a polymorphic field
+4. **Infer required vs optional.**
+    - Field present in **100% of samples** → likely required
+    - Field present in **some but not all** → optional
+    - Caveat: this is probabilistic, not certain — 20 samples all having a field doesn't guarantee it's truly required, just likely
+5. **Infer enums.** If a field only ever takes 3-4 distinct string values across hundreds of samples (e.g., `status: "active"/"pending"/"closed"`), treat it as a likely enum — but note it as inferred, not confirmed, since a 4th value may just not have appeared yet.
+6. **Output as OpenAPI/JSON Schema.** Structure the result the same way a published spec would look, so it plugs into the same diff/catalog pipeline.
+
+**Tools that automate most of this:**
+
+- `mitmproxy2swagger` — converts captured mitmproxy flows directly into an OpenAPI draft
+- Postman's "Generate Collection" from a captured traffic dump, then export as OpenAPI
+- `optic` — watches traffic continuously and builds/updates a spec over time (better for ongoing monitoring than one-off extraction)
+
+**Key limitation:** you can only infer what you've _observed_. If you never triggered a particular error path, or never saw an admin-only field, it won't be in your schema. This is why Step 2 (edge-case testing — empty inputs, invalid IDs, missing auth) matters: it's how you surface fields/behaviors that normal usage wouldn't show.
