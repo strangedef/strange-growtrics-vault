@@ -113,3 +113,16 @@ The idea: capture real request/response pairs, then reverse-engineer a schema fr
 - `optic` — watches traffic continuously and builds/updates a spec over time (better for ongoing monitoring than one-off extraction)
 
 **Key limitation:** you can only infer what you've _observed_. If you never triggered a particular error path, or never saw an admin-only field, it won't be in your schema. This is why Step 2 (edge-case testing — empty inputs, invalid IDs, missing auth) matters: it's how you surface fields/behaviors that normal usage wouldn't show.
+
+#### Approach 2: Changelog/Docs Scraping
+
+Used when there's no machine-readable spec _and_ no traffic to capture yet (e.g., you want to know about a change before you've made any calls, or the API is documented only in prose).
+
+**How it works:**
+
+1. **Identify the source pages** — vendor's `/changelog`, `/release-notes`, or the human-readable API docs page itself.
+2. **Snapshot the page content periodically** (daily/weekly): fetch the page, extract the meaningful text (strip nav/footer/ads), store it.
+3. **Diff snapshots over time** — plain text diff between today's fetch and the last stored one. A changed paragraph under "v2.3 - added `phone_number` field to /users" is your signal.
+4. **Parse structure if the docs are semi-structured.** Many API docs pages (Stripe, Twilio-style) render from an underlying OpenAPI/JSON they don't publicly link — check the page's network requests (via the same proxy technique) for a hidden JSON endpoint the docs UI itself calls. This sometimes gets you a real machine-readable spec even when there's no "official" public one.
+
+**Key limitation:** this is the weakest signal of the two — it depends entirely on the vendor writing accurate, complete changelogs, and text diffing is noisy (formatting changes look like content changes). Treat it as an early-warning trigger to go re-run traffic-based inference, not as a source of truth on its own.
