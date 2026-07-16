@@ -2,4 +2,3 @@
 - Code formatting
 - Claude can read .env
 - Plugins to save token
-- 
