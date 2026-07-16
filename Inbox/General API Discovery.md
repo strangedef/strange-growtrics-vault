@@ -126,3 +126,22 @@ Used when there's no machine-readable spec _and_ no traffic to capture yet (e.g.
 4. **Parse structure if the docs are semi-structured.** Many API docs pages (Stripe, Twilio-style) render from an underlying OpenAPI/JSON they don't publicly link — check the page's network requests (via the same proxy technique) for a hidden JSON endpoint the docs UI itself calls. This sometimes gets you a real machine-readable spec even when there's no "official" public one.
 
 **Key limitation:** this is the weakest signal of the two — it depends entirely on the vendor writing accurate, complete changelogs, and text diffing is noisy (formatting changes look like content changes). Treat it as an early-warning trigger to go re-run traffic-based inference, not as a source of truth on its own.
+
+```
+Static doc (PDF/sheet)
+      │
+      ▼
+Extract text/tables (pdfplumber, direct sheet read)
+      │
+      ▼
+Parse into fields (table → direct mapping, OR prose → LLM-assisted parse)
+      │
+      ▼
+Draft OpenAPI schema
+      │
+      ▼
+Validate against real API calls (confirm required fields, response shape)
+      │
+      ▼
+Final schema (doc-derived structure + traffic-confirmed accuracy)
+```
