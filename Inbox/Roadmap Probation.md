@@ -45,14 +45,14 @@ Depends on HGSQA-968 (multi-target projects — API as a target type).
 
 ### Phased build plan
 
-|Tier|Scope|Timing|
-|---|---|---|
-|0 — Foundation|Target registration, generation v0 (spec + product knowledge), basic functional tests|Jul 14–16 spike|
-|1 — v1 client-usable|Schema/contract, negative/edge-case fuzzing, auth/authz matrix, pagination, per-endpoint SLA, basic reporting|Jul 20–Aug 14 (mid-Aug commit)|
-|2 — Maintenance engine|Change detection, auto-regeneration, regression-safe evolution, human-review gate, coverage attribution|Aug 18–Sep 5 (pulled forward, not optional)|
-|3 — Enterprise/security depth|OWASP Top 10, idempotency, rate-limiting, CDC|Sep–Oct|
-|4 — Protocol expansion|GraphQL, gRPC|Only on real client demand|
-|5 — Trust/enterprise-readiness|FP-rate benchmark, HITL metrics, data-masking, coverage report|Parallel, partly product/compliance-owned|
+| Tier                           | Scope                                                                                                         | Timing                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 0 — Foundation                 | Target registration, generation v0 (spec + product knowledge), basic functional tests                         | Jul 14–16 spike                             |
+| 1 — v1 client-usable           | Schema/contract, negative/edge-case fuzzing, auth/authz matrix, pagination, per-endpoint SLA, basic reporting | Jul 20–Aug 14 (mid-Aug commit)              |
+| 2 — Maintenance engine         | Change detection, auto-regeneration, regression-safe evolution, human-review gate, coverage attribution       | Aug 18–Sep 5 (pulled forward, not optional) |
+| 3 — Enterprise/security depth  | OWASP Top 10, idempotency, rate-limiting, CDC                                                                 | Sep–Oct                                     |
+| 4 — Protocol expansion         | GraphQL, gRPC                                                                                                 | Only on real client demand                  |
+| 5 — Trust/enterprise-readiness | FP-rate benchmark, HITL metrics, data-masking, coverage report                                                | Parallel, partly product/compliance-owned   |
 
 ### Single-FTE roadmap (Khoa Hung, starting Jul 14)
 
@@ -83,4 +83,4 @@ These are investigation tasks, not a locked plan — findings get reported back 
 
 ---
 
-Want me to turn this into a downloadable Word doc, or trim it down to a one-page executive version?
+Want me to turn this into a downloadable Word doc, or trim it down to a one-page executive version?******
