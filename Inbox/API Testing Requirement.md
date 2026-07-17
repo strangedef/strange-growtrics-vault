@@ -64,3 +64,9 @@ Here's the consolidated requirement scope across Tier 0 through Tier 2, pulled f
 | 0    | Prove generation quality beats a generic tool | Can we generate smarter tests than free tools?   |
 | 1    | Ship a sellable, execution-complete v1        | Does the API actually work correctly and safely? |
 | 2    | Make the test suite self-maintaining          | Does the client ever have to touch this again?   |
+#### Note Tier 0
+At the end of Tier 0, someone has to look at the generated tests and honestly judge: **is this actually better than what a free tool like Postman or Schemathesis would produce?**
+
+If yes → move on to Tier 1. If no → stop and improve the generation quality first, don't proceed yet.
+
+It's a checkpoint to make sure the core differentiator (smarter test generation) is real before building the rest of the product on top of it.
