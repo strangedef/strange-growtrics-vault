@@ -115,7 +115,7 @@ Target + Environment Registration
 
 | Entity | Purpose | Key fields |
 |---|---|---|
-| **Target** | A registered API to test | `id`, `name`, `spec_source_type` |
+| **Target** | A registered API to test | `id`, `app_id`, `project_id`, `name`, `spec_source_type` |
 | **Environment** | One deployment of a Target | `id`, `target_id`, `name` (dev/staging/prod/custom), `base_url`, `auth_config_ref` (type: api_key\|bearer\|oauth2_cc + vault ref) |
 | **KnowledgeSource** | A connected doc source | `id`, `target_id`, `type` (upload\|confluence\|linear), `config` |
 | **SpecArtifact** | Versioned, normalized spec | `id`, `target_id`, `version`, `canonical_endpoints[]`, `source_format`, `diff_from_previous`, `created_at` |
@@ -129,20 +129,215 @@ Target + Environment Registration
 
 Versioning is the load-bearing idea: `SpecArtifact`, `KnowledgeArtifact`, and `TestSuite` are immutable and versioned, and every `TestSuite` records exactly which spec/knowledge versions produced it — the traceability Tier 2 needs to say "this test came from spec v3 + knowledge v1, the spec is now v4, here's what's affected."
 
-## 6. Key Design Decisions
+`Target.app_id` / `Target.project_id` scope every target to the existing multi-user/multi-project system, matching how the rest of the platform partitions data. Tier 0 just carries these as opaque foreign keys on `Target` — the multi-tenancy model itself (permissions, project-level settings) is out of scope here.
 
-| Decision                    | Choice                                                                                            | Rationale                                                                                                             |
-| --------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Architecture shape          | Staged pipeline, single service, persisted versioned artifacts (not sync-only, not microservices) | Matches spec's "fast and minimal" execution-infra guidance while directly setting up Tier 2's diff/regeneration needs |
-| Product knowledge input     | Free-text docs (PDF/DOCX) + Confluence/Linear connectors                                          | Matches how clients actually hold product knowledge; requires an extraction step, not structured rule entry           |
-| Auth support                | API key, Bearer token, OAuth2 client-credentials                                                  | Covers the realistic majority of client APIs at this stage                                                            |
-| Environments                | Multiple environments per target from the start                                                   | Low added complexity now vs. retrofitting later; one suite naturally applies across dev/staging/prod                  |
-| Spec formats                | OpenAPI 3.x, Swagger 2.0, Postman collection, Insomnia collection                                 | Covers clients without a formal OpenAPI doc but with an internal collection                                           |
-| Test generation depth       | Single-call tests only, no chained CRUD                                                           | Keeps Tier 0 scoped to the MVP functional-testing bar; chaining is explicitly deferred to Tier 2                      |
-| HTTP method scope           | Safe/idempotent only (GET, HEAD)                                                                  | Removes all cleanup/teardown and destructive-call safety concerns from the foundation tier                            |
-| Seed values for path params | User-supplied manually, flagged `needs-seed-value`                                                | Avoids guessing IDs that produce meaningless 404s; superseded once Tier 2 adds create-then-use chaining               |
-| Execution trigger           | Manual only                                                                                       | Matches the taxonomy's MVP bar for CI/CD ("manual trigger"); automation is Tier 1+                                    |
-| Report/ticket integration   | Tier 0 defines and emits a `Finding` contract; pipeline internals treated as an external boundary | Keeps Tier 0 buildable without dependency on undocumented pipeline internals                                          |
+## 6. Example Data
+
+A worked example across one target — a client's Orders API — showing one record per entity, in the order they'd actually get created.
+
+**Target**
+```json
+{
+  "id": "tgt_01h9x",
+  "app_id": "app_modun",
+  "project_id": "proj_bookings",
+  "name": "Modun Orders API",
+  "spec_source_type": "openapi3"
+}
+```
+
+**Environment** (two, under the same Target)
+```json
+[
+  {
+    "id": "env_01a1",
+    "target_id": "tgt_01h9x",
+    "name": "staging",
+    "base_url": "https://staging.modun.example.com/api",
+    "auth_config_ref": { "type": "bearer", "vault_ref": "vault://modun/staging-token" }
+  },
+  {
+    "id": "env_01a2",
+    "target_id": "tgt_01h9x",
+    "name": "production",
+    "base_url": "https://api.modun.example.com",
+    "auth_config_ref": { "type": "oauth2_cc", "vault_ref": "vault://modun/prod-oauth" }
+  }
+]
+```
+
+**KnowledgeSource**
+```json
+[
+  {
+    "id": "ks_01b1",
+    "target_id": "tgt_01h9x",
+    "type": "upload",
+    "config": { "filename": "modun-business-rules.pdf" }
+  },
+  {
+    "id": "ks_01b2",
+    "target_id": "tgt_01h9x",
+    "type": "confluence",
+    "config": { "space_key": "MODUN", "vault_ref": "vault://modun/confluence-token" }
+  }
+]
+```
+
+**SpecArtifact**
+```json
+{
+  "id": "spec_01c1",
+  "target_id": "tgt_01h9x",
+  "version": 1,
+  "source_format": "openapi3",
+  "canonical_endpoints": [
+    {
+      "method": "GET",
+      "path": "/orders/{id}",
+      "path_params": [{ "name": "id", "type": "string" }],
+      "response_schema": {
+        "200": { "id": "string", "status": "string", "total": "number" }
+      },
+      "tier0_eligible": true
+    },
+    {
+      "method": "POST",
+      "path": "/orders",
+      "request_body_schema": { "items": "array", "customer_id": "string" },
+      "response_schema": { "201": { "id": "string", "status": "string" } },
+      "tier0_eligible": false
+    }
+  ],
+  "diff_from_previous": null,
+  "created_at": "2026-07-14T09:00:00Z"
+}
+```
+
+**KnowledgeArtifact**
+```json
+{
+  "id": "know_01d1",
+  "target_id": "tgt_01h9x",
+  "version": 1,
+  "sources": ["ks_01b1", "ks_01b2"],
+  "extracted_invariants": [
+    {
+      "text": "An order's total must always be a positive number.",
+      "source_ref": "ks_01b1#section-3.2",
+      "confidence": 0.91
+    },
+    {
+      "text": "A completed order must have status one of: pending, paid, shipped, delivered, cancelled.",
+      "source_ref": "ks_01b2#page-Order-Lifecycle",
+      "confidence": 0.87
+    }
+  ]
+}
+```
+
+**TestSuite**
+```json
+{
+  "id": "suite_01e1",
+  "target_id": "tgt_01h9x",
+  "spec_artifact_version": 1,
+  "knowledge_artifact_version": 1,
+  "version": 1,
+  "test_cases": ["tc_01f1"]
+}
+```
+
+**TestCase**
+```json
+{
+  "id": "tc_01f1",
+  "suite_id": "suite_01e1",
+  "endpoint_ref": "GET /orders/{id}",
+  "request_template": { "path_params": { "id": "{{seed:order_id}}" } },
+  "needs_seed_value": true,
+  "assertions": [
+    { "type": "status_code", "expected": "2xx", "rationale": "base assertion (spec)" },
+    { "type": "field_exists", "field": "status", "rationale": "spec: required field" },
+    {
+      "type": "value_positive",
+      "field": "total",
+      "rationale": "knowledge invariant know_01d1#0: \"An order's total must always be a positive number.\""
+    }
+  ]
+}
+```
+
+**SeedValue**
+```json
+{
+  "id": "seed_01g1",
+  "test_case_id": "tc_01f1",
+  "param_name": "order_id",
+  "value": "ord_8842",
+  "provided_by": "hoang.nguyen@growtrics.ai",
+  "provided_at": "2026-07-17T10:15:00Z"
+}
+```
+
+**SuiteRun**
+```json
+{
+  "id": "run_01h1",
+  "suite_id": "suite_01e1",
+  "environment_id": "env_01a1",
+  "triggered_by": "hoang.nguyen@growtrics.ai",
+  "started_at": "2026-07-17T10:16:00Z",
+  "finished_at": "2026-07-17T10:16:04Z",
+  "status": "completed"
+}
+```
+
+**RunResult**
+```json
+{
+  "id": "res_01i1",
+  "suite_run_id": "run_01h1",
+  "test_case_id": "tc_01f1",
+  "http_status": 200,
+  "latency_ms": 142,
+  "assertion_results": [
+    { "type": "status_code", "passed": true },
+    { "type": "field_exists", "field": "status", "passed": true },
+    { "type": "value_positive", "field": "total", "passed": false, "actual": -5 }
+  ],
+  "evidence": { "response_body": { "id": "ord_8842", "status": "paid", "total": -5 } },
+  "outcome": "fail"
+}
+```
+
+**Finding**
+```json
+{
+  "id": "find_01j1",
+  "suite_run_id": "run_01h1",
+  "test_case_id": "tc_01f1",
+  "severity": "high",
+  "summary": "GET /orders/ord_8842 returned total=-5, expected a positive number.",
+  "evidence_ref": "res_01i1",
+  "rationale": "knowledge invariant know_01d1#0: \"An order's total must always be a positive number.\" (source: modun-business-rules.pdf, section 3.2)"
+}
+```
+
+## 7. Key Design Decisions
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| Architecture shape | Staged pipeline, single service, persisted versioned artifacts (not sync-only, not microservices) | Matches spec's "fast and minimal" execution-infra guidance while directly setting up Tier 2's diff/regeneration needs |
+| Product knowledge input | Free-text docs (PDF/DOCX) + Confluence/Linear connectors | Matches how clients actually hold product knowledge; requires an extraction step, not structured rule entry |
+| Auth support | API key, Bearer token, OAuth2 client-credentials | Covers the realistic majority of client APIs at this stage |
+| Environments | Multiple environments per target from the start | Low added complexity now vs. retrofitting later; one suite naturally applies across dev/staging/prod |
+| Spec formats | OpenAPI 3.x, Swagger 2.0, Postman collection, Insomnia collection | Covers clients without a formal OpenAPI doc but with an internal collection |
+| Test generation depth | Single-call tests only, no chained CRUD | Keeps Tier 0 scoped to the MVP functional-testing bar; chaining is explicitly deferred to Tier 2 |
+| HTTP method scope | Safe/idempotent only (GET, HEAD) | Removes all cleanup/teardown and destructive-call safety concerns from the foundation tier |
+| Seed values for path params | User-supplied manually, flagged `needs-seed-value` | Avoids guessing IDs that produce meaningless 404s; superseded once Tier 2 adds create-then-use chaining |
+| Execution trigger | Manual only | Matches the taxonomy's MVP bar for CI/CD ("manual trigger"); automation is Tier 1+ |
+| Report/ticket integration | Tier 0 defines and emits a `Finding` contract; pipeline internals treated as an external boundary | Keeps Tier 0 buildable without dependency on undocumented pipeline internals |
 
 ## 7. Open Questions / Not Yet Decided
 
