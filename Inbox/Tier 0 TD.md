@@ -326,18 +326,18 @@ A worked example across one target — a client's Orders API — showing one rec
 
 ## 7. Key Design Decisions
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| Architecture shape | Staged pipeline, single service, persisted versioned artifacts (not sync-only, not microservices) | Matches spec's "fast and minimal" execution-infra guidance while directly setting up Tier 2's diff/regeneration needs |
-| Product knowledge input | Free-text docs (PDF/DOCX) + Confluence/Linear connectors | Matches how clients actually hold product knowledge; requires an extraction step, not structured rule entry |
-| Auth support | API key, Bearer token, OAuth2 client-credentials | Covers the realistic majority of client APIs at this stage |
-| Environments | Multiple environments per target from the start | Low added complexity now vs. retrofitting later; one suite naturally applies across dev/staging/prod |
-| Spec formats | OpenAPI 3.x, Swagger 2.0, Postman collection, Insomnia collection | Covers clients without a formal OpenAPI doc but with an internal collection |
-| Test generation depth | Single-call tests only, no chained CRUD | Keeps Tier 0 scoped to the MVP functional-testing bar; chaining is explicitly deferred to Tier 2 |
-| HTTP method scope | Safe/idempotent only (GET, HEAD) | Removes all cleanup/teardown and destructive-call safety concerns from the foundation tier |
-| Seed values for path params | User-supplied manually, flagged `needs-seed-value` | Avoids guessing IDs that produce meaningless 404s; superseded once Tier 2 adds create-then-use chaining |
-| Execution trigger | Manual only | Matches the taxonomy's MVP bar for CI/CD ("manual trigger"); automation is Tier 1+ |
-| Report/ticket integration | Tier 0 defines and emits a `Finding` contract; pipeline internals treated as an external boundary | Keeps Tier 0 buildable without dependency on undocumented pipeline internals |
+| Decision                    | Choice                                                                                            | Rationale                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Architecture shape          | Staged pipeline, single service, persisted versioned artifacts (not sync-only, not microservices) | Matches spec's "fast and minimal" execution-infra guidance while directly setting up Tier 2's diff/regeneration needs |
+| Product knowledge input     | Free-text docs (PDF/DOCX) + Confluence/Linear connectors                                          | Matches how clients actually hold product knowledge; requires an extraction step, not structured rule entry           |
+| Auth support                | API key, Bearer token, OAuth2 client-credentials                                                  | Covers the realistic majority of client APIs at this stage                                                            |
+| Environments                | Multiple environments per target from the start                                                   | Low added complexity now vs. retrofitting later; one suite naturally applies across dev/staging/prod                  |
+| Spec formats                | OpenAPI 3.x, Swagger 2.0, Postman collection, Insomnia collection                                 | Covers clients without a formal OpenAPI doc but with an internal collection                                           |
+| Test generation depth       | Single-call tests only, no chained CRUD                                                           | Keeps Tier 0 scoped to the MVP functional-testing bar; chaining is explicitly deferred to Tier 2                      |
+| HTTP method scope           | Safe/idempotent only (GET, HEAD)                                                                  | Removes all cleanup/teardown and destructive-call safety concerns from the foundation tier                            |
+| Seed values for path params | User-supplied manually, flagged `needs-seed-value`                                                | Avoids guessing IDs that produce meaningless 404s; superseded once Tier 2 adds create-then-use chaining               |
+| Execution trigger           | Manual only                                                                                       | Matches the taxonomy's MVP bar for CI/CD ("manual trigger"); automation is Tier 1+                                    |
+| Report/ticket integration   | Tier 0 defines and emits a `Finding` contract; pipeline internals treated as an external boundary | Keeps Tier 0 buildable without dependency on undocumented pipeline internals                                          |
 
 ## 7. Open Questions / Not Yet Decided
 
