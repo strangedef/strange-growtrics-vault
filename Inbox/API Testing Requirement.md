@@ -70,3 +70,13 @@ At the end of Tier 0, someone has to look at the generated tests and honestly ju
 If yes → move on to Tier 1. If no → stop and improve the generation quality first, don't proceed yet.
 
 It's a checkpoint to make sure the core differentiator (smarter test generation) is real before building the rest of the product on top of it.
+
+# Tier 0 questions
+
+1. **Change-detection mechanism** — scheduled re-validation, spec-diff, or continuous monitoring? (owner: Khoa Hung, due Jul 16)
+2. **Can API testing reuse the existing app-graph** (`app_graph_reader.py`), or does it need its own representation?
+3. **Does `services/knowledge_base/` already hold product knowledge**, or is it not built yet?
+4. **What's the real quality gap between baseline (spec + product knowledge) vs. enhanced (+ codebase) generation** — worth pushing clients to connect GitHub?
+5. **Does generation pass the gate** — is it genuinely smarter than free Postman/Schemathesis?
+
+**Not yet asked, worth adding:** 6. How do we trace a field-level spec change back to the right endpoint-level tests? (needed for Tier 2's "affected tests only")
