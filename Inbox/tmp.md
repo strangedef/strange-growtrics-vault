@@ -1,0 +1,1 @@
+the API testing system is capable of testing Full CRUD lifecycle chains with state carried between steps in this stage, and remove the temporal flag tier0_eligible, and remove seed value as well
