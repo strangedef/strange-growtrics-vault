@@ -113,19 +113,19 @@ Target + Environment Registration
 
 ## 5. Data Model
 
-| Entity | Purpose | Key fields |
-|---|---|---|
-| **Target** | A registered API to test | `id`, `app_id`, `project_id`, `name`, `spec_source_type` |
-| **Environment** | One deployment of a Target | `id`, `target_id`, `name` (dev/staging/prod/custom), `base_url`, `auth_config_ref` (type: api_key\|bearer\|oauth2_cc + vault ref) |
-| **KnowledgeSource** | A connected doc source | `id`, `target_id`, `type` (upload\|confluence\|linear), `config` |
-| **SpecArtifact** | Versioned, normalized spec | `id`, `target_id`, `version`, `canonical_endpoints[]`, `source_format`, `diff_from_previous`, `created_at` |
-| **KnowledgeArtifact** | Versioned extraction result | `id`, `target_id`, `version`, `sources[]`, `extracted_invariants[]` (text, source_ref, confidence) |
-| **TestSuite** | Versioned generated suite | `id`, `target_id`, `spec_artifact_version`, `knowledge_artifact_version`, `version`, `test_cases[]` |
-| **TestCase** | One generated request + assertions | `id`, `suite_id`, `endpoint_ref`, `request_template`, `assertions[]` (each with rationale), `needs_seed_value: bool`, *(reserved, unused in Tier 0: `depends_on`, `capture`)* |
-| **SeedValue** | User-supplied param value | `id`, `test_case_id`, `param_name`, `value`, `provided_by`, `provided_at` |
-| **SuiteRun** | One execution of a suite | `id`, `suite_id`, `environment_id`, `triggered_by`, `started_at`, `finished_at`, `status` |
-| **RunResult** | One test case's outcome | `id`, `suite_run_id`, `test_case_id`, `http_status`, `latency_ms`, `assertion_results[]`, `evidence`, `outcome` (pass\|fail\|error) |
-| **Finding** | Emitted to report/ticket pipeline | `id`, `suite_run_id`, `test_case_id`, `severity`, `summary`, `evidence_ref`, `rationale` |
+| Entity                | Purpose                            | Key fields                                                                                                                                                                    |
+| --------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Target**            | A registered API to test           | `id`, `app_id`, `project_id`, `name`, `spec_source_type`                                                                                                                      |
+| **Environment**       | One deployment of a Target         | `id`, `target_id`, `name` (dev/staging/prod/custom), `base_url`, `auth_config_ref` (type: api_key\|bearer\|oauth2_cc + vault ref)                                             |
+| **KnowledgeSource**   | A connected doc source             | `id`, `target_id`, `type` (upload\|confluence\|linear), `config`                                                                                                              |
+| **SpecArtifact**      | Versioned, normalized spec         | `id`, `target_id`, `version`, `canonical_endpoints[]`, `source_format`, `diff_from_previous`, `created_at`                                                                    |
+| **KnowledgeArtifact** | Versioned extraction result        | `id`, `target_id`, `version`, `sources[]`, `extracted_invariants[]` (text, source_ref, confidence)                                                                            |
+| **TestSuite**         | Versioned generated suite          | `id`, `target_id`, `spec_artifact_version`, `knowledge_artifact_version`, `version`, `test_cases[]`                                                                           |
+| **TestCase**          | One generated request + assertions | `id`, `suite_id`, `endpoint_ref`, `request_template`, `assertions[]` (each with rationale), `needs_seed_value: bool`, *(reserved, unused in Tier 0: `depends_on`, `capture`)* |
+| **SeedValue**         | User-supplied param value          | `id`, `test_case_id`, `param_name`, `value`, `provided_by`, `provided_at`                                                                                                     |
+| **SuiteRun**          | One execution of a suite           | `id`, `suite_id`, `environment_id`, `triggered_by`, `started_at`, `finished_at`, `status`                                                                                     |
+| **RunResult**         | One test case's outcome            | `id`, `suite_run_id`, `test_case_id`, `http_status`, `latency_ms`, `assertion_results[]`, `evidence`, `outcome` (pass\|fail\|error)                                           |
+| **Finding**           | Emitted to report/ticket pipeline  | `id`, `suite_run_id`, `test_case_id`, `severity`, `summary`, `evidence_ref`, `rationale`                                                                                      |
 
 Versioning is the load-bearing idea: `SpecArtifact`, `KnowledgeArtifact`, and `TestSuite` are immutable and versioned, and every `TestSuite` records exactly which spec/knowledge versions produced it — the traceability Tier 2 needs to say "this test came from spec v3 + knowledge v1, the spec is now v4, here's what's affected."
 
