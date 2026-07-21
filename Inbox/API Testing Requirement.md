@@ -87,3 +87,13 @@ To be precise about _why_ this holds:
 
 ### OAuth2 access token looks
 the format is standardized (OAuth2 spec), but the mapping of scope→endpoint is still client business logic that has to come from onboarding
+
+### Example — a booking API protected by scope
+
+| Scope             | Meaning                                          | Applied to                                      |
+| ----------------- | ------------------------------------------------ | ----------------------------------------------- |
+| `read:bookings`   | Can view bookings                                | `GET /bookings`, `GET /bookings/{id}`           |
+| `write:bookings`  | Can create/modify bookings                       | `POST /bookings`, `PATCH /bookings/{id}`        |
+| `delete:bookings` | Can cancel/delete bookings                       | `DELETE /bookings/{id}`                         |
+| `read:users`      | Can view user profiles                           | `GET /users/{id}`                               |
+| `admin:users`     | Can manage user accounts (create/suspend/delete) | `POST /admin/users`, `DELETE /admin/users/{id}` |
