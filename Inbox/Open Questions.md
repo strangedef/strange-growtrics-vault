@@ -1,6 +1,6 @@
 ## 8. Open Questions / Not Yet Decided
 
-- Exact severity taxonomy for `Finding` (how fail vs. error map to severity levels).
+- ~~Exact severity taxonomy for `Finding` (how fail vs. error map to severity levels).~~
 - Detailed testing/validation strategy for the generation and execution engines themselves (fixture specs, generation-quality evaluation approach).
 - Error-handling policy beyond what's described per-stage above (e.g. partial-suite generation failures, retry limits beyond the single network retry in Stage 4).
 - Whether knowledge-source refresh (re-fetching Confluence/Linear content) is on-demand only or also scheduled, even within Tier 0.
