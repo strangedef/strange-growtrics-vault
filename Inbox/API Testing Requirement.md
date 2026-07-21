@@ -84,3 +84,6 @@ To be precise about _why_ this holds:
 
 - **BFLA** (vertical + horizontal) → catches "wrong function" cases, which is what wrong-scope was mostly protecting against for OAuth2 clients (a read-only-scoped token trying to write, a sales-scoped token trying to hit an admin endpoint)
 - **BOLA** → catches "wrong data owner" cases, which formal scope systems don't even really cover well in the first place (scope says _what actions_ a token can do, not _whose data_ it can touch)
+
+### OAuth2 access token looks
+the format is standardized (OAuth2 spec), but the mapping of scope→endpoint is still client business logic that has to come from onboarding
