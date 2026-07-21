@@ -43,16 +43,16 @@ This is authoriz_ation_, not authentic_ation_ — meaning: you _are_ logged in v
 
 ## Main Models
 
-|Type|Description|Example|
-|---|---|---|
-|**DAC** (Discretionary Access Control)|Resource owner decides who can access it|File sharing permissions (Google Docs "share with...")|
-|**MAC** (Mandatory Access Control)|System enforces fixed security labels/rules, users can't override|Military/government classified systems|
-|**RBAC** (Role-Based Access Control)|Permissions assigned to roles, users assigned to roles|Admin, Editor, Viewer roles|
-|**ABAC** (Attribute-Based Access Control)|Access based on attributes (user, resource, environment)|"Managers can approve if amount < $10k"|
-|**PBAC** (Policy-Based Access Control)|Centralized policies define access rules|OPA (Open Policy Agent) policies|
-|**ReBAC** (Relationship-Based Access Control)|Access based on relationships between entities|"Only friends can see this post" (social networks)|
-|**ACL** (Access Control List)|List attached to a resource specifying who can do what|File system permissions (rwx)|
-|**Capability-based**|Possessing a "token/capability" grants access|OAuth tokens, API keys|
+| Type                                          | Description                                                       | Example                                                |
+| --------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------ |
+| **DAC** (Discretionary Access Control)        | Resource owner decides who can access it                          | File sharing permissions (Google Docs "share with...") |
+| **MAC** (Mandatory Access Control)            | System enforces fixed security labels/rules, users can't override | Military/government classified systems                 |
+| **RBAC** (Role-Based Access Control)          | Permissions assigned to roles, users assigned to roles            | Admin, Editor, Viewer roles                            |
+| **ABAC** (Attribute-Based Access Control)     | Access based on attributes (user, resource, environment)          | "Managers can approve if amount < $10k"                |
+| **PBAC** (Policy-Based Access Control)        | Centralized policies define access rules                          | OPA (Open Policy Agent) policies                       |
+| **ReBAC** (Relationship-Based Access Control) | Access based on relationships between entities                    | "Only friends can see this post" (social networks)     |
+| **ACL** (Access Control List)                 | List attached to a resource specifying who can do what            | File system permissions (rwx)                          |
+| **Capability-based**                          | Possessing a "token/capability" grants access                     | OAuth tokens, API keys                                 |
 
 ## Most Popular in Practice
 
@@ -67,4 +67,107 @@ This is authoriz_ation_, not authentic_ation_ — meaning: you _are_ logged in v
 - **Complex, dynamic rules** → ABAC or PBAC
 - **Social/collaborative apps with nested permissions** → ReBAC
 - **APIs / third-party access** → OAuth 2.0 scopes
+
+# Solving Multi-Tenancy: Scope + RBAC Together
+
+The key idea: **don't put per-org roles in the token's scope.** Instead, keep scope generic, and resolve the role **dynamically at request time** based on which tenant the request is targeting.
+
+## Approach 1: Generic Scope + Tenant Context Header (Most Common)
+
+**Token scope stays simple and tenant-agnostic:**
+
+```
+scopes: ["tasks:read", "tasks:write"]
+```
+
+This just says: "this token is _capable of_ read/write actions in general" — not tied to any specific org.
+
+**Every request includes a tenant/org context:**
+
+```
+GET /orgs/{org_id}/projects/42/tasks
+Authorization: Bearer <token>
+```
+
+**At request time, the API does a lookup:**
+
+```
+1. Check scope → does token have "tasks:write"? ✅
+2. Check RBAC → SELECT role FROM memberships 
+                 WHERE user_id = X AND org_id = {org_id}
+   → Returns: "Viewer" for Org B
+3. Decision: Viewer + write attempt → ❌ Deny
+```
+
+The role is **never stored in the token** — it's fetched fresh from the database every time, scoped to whichever org the URL/request targets. This solves stale-token and per-org variation in one shot.
+
+---
+
+## Approach 2: Tenant-Scoped Tokens (Used by Slack, Google Workspace-style APIs)
+
+Instead of one token for "the user everywhere," issue a **separate token per org**, obtained when the user selects/switches organization:
+
+```
+User logs in → selects "Org A" → 
+Token issued: { sub: "alice", org_id: "A", scope: "tasks:write", role: "editor" }
+```
+
+If Alice switches to Org B, she gets a **new token**:
+
+```
+Token issued: { sub: "alice", org_id: "B", scope: "tasks:read", role: "viewer" }
+```
+
+✅ Solves the bloat problem — each token only carries the role for **one** org ✅ Common in apps with an explicit "workspace switcher" UI (Slack, Notion, Linear) ❌ Requires re-authentication/token exchange on every org switch
+
+---
+
+## Approach 3: JWT with Compact Org-Role Map (For Users in Few Orgs)
+
+If a user only belongs to a handful of orgs (not thousands), embed a **compact map** in the JWT claims instead of full scope explosion:
+
+```json
+{
+  "sub": "alice",
+  "scope": "tasks:read tasks:write",
+  "orgs": {
+    "org_A": "admin",
+    "org_B": "viewer"
+  }
+}
+```
+
+The API then does:
+
+```
+1. Scope check: "tasks:write" in token? ✅
+2. RBAC check: token.orgs[request.org_id] == "admin" or "editor"? 
+   → org_B = "viewer" → ❌ Deny
+```
+
+✅ No DB lookup needed (fast, stateless) ❌ Doesn't scale if a user is in hundreds/thousands of orgs (token size limit) ❌ Still stale until token refresh — role changes mid-session won't apply until re-issued
+
+---
+
+## Comparison
+
+|Approach|Role Source|Freshness|Best For|
+|---|---|---|---|
+|**Generic scope + DB lookup**|Database (live)|Always fresh|Most SaaS apps, any # of orgs|
+|**Tenant-scoped token**|Token (per-org)|Fresh on switch|Apps with explicit workspace switching|
+|**Compact org-role map in JWT**|Token (embedded)|Stale until refresh|Users in few orgs, need low-latency/stateless checks|
+
+---
+
+## Real-World Example: Slack's Model
+
+Slack uses **Approach 2**: your OAuth token is scoped to **one workspace at a time**. If your app needs access to multiple Slack workspaces, it must obtain **separate tokens per workspace** — each with its own scope and the user's role in that specific workspace baked in.
+
+## Real-World Example: GitHub's Model
+
+GitHub uses a hybrid: **Approach 1** for org-level checks (role fetched live via `org_id` + `user_id`), combined with **repo-level RBAC** — since a user's role can differ per-repository even within the same org (e.g., Write on Repo X, Admin on Repo Y).
+
+---
+
+**Bottom line:** the pattern is always the same — **keep scope generic (what kind of action), keep tenant/role resolution dynamic and server-side (who can do it, where)**. Never try to encode "user X's role in every possible org" into a single static token.
 
