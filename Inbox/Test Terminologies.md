@@ -37,3 +37,34 @@ This is authoriz_ation_, not authentic_ation_ — meaning: you _are_ logged in v
 
 **Why this is called out specially:** the spec notes this is the single most common and most severe real-world API bug class — roughly 40% of real API attacks exploit BOLA specifically — and it's the one category that automated scanners tend to miss, because it requires understanding _whose data is whose_ (business context), not just checking if a token is valid. That's exactly why it fits TaloTrace's "business-knowledge-grounded testing" pitch rather than being commodity work.
 
+# Software Authorization Types
+
+**Authorization** determines _what a user is allowed to do_ (different from authentication, which verifies _who they are_).
+
+## Main Models
+
+|Type|Description|Example|
+|---|---|---|
+|**DAC** (Discretionary Access Control)|Resource owner decides who can access it|File sharing permissions (Google Docs "share with...")|
+|**MAC** (Mandatory Access Control)|System enforces fixed security labels/rules, users can't override|Military/government classified systems|
+|**RBAC** (Role-Based Access Control)|Permissions assigned to roles, users assigned to roles|Admin, Editor, Viewer roles|
+|**ABAC** (Attribute-Based Access Control)|Access based on attributes (user, resource, environment)|"Managers can approve if amount < $10k"|
+|**PBAC** (Policy-Based Access Control)|Centralized policies define access rules|OPA (Open Policy Agent) policies|
+|**ReBAC** (Relationship-Based Access Control)|Access based on relationships between entities|"Only friends can see this post" (social networks)|
+|**ACL** (Access Control List)|List attached to a resource specifying who can do what|File system permissions (rwx)|
+|**Capability-based**|Possessing a "token/capability" grants access|OAuth tokens, API keys|
+
+## Most Popular in Practice
+
+1. **RBAC** — most widely used in enterprise apps, easy to understand and manage
+2. **ABAC** — used when RBAC becomes too rigid, needed for fine-grained/dynamic rules
+3. **ReBAC** — increasingly popular for modern apps (Google Zanzibar model — used by Slack, GitHub, Canva)
+4. **OAuth 2.0 / OIDC scopes** — the de facto standard for API/third-party authorization
+
+## Quick Recommendation
+
+- **Simple apps** → RBAC
+- **Complex, dynamic rules** → ABAC or PBAC
+- **Social/collaborative apps with nested permissions** → ReBAC
+- **APIs / third-party access** → OAuth 2.0 scopes
+
