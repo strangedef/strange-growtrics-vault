@@ -36,3 +36,4 @@ This is authoriz_ation_, not authentic_ation_ — meaning: you _are_ logged in v
 **"Multi-tenant object-level authorization replay"** just means the actual test technique: log in as Account B, try to request Account A's object, and confirm the API says **403 Forbidden** — not confirm it just returns the data.
 
 **Why this is called out specially:** the spec notes this is the single most common and most severe real-world API bug class — roughly 40% of real API attacks exploit BOLA specifically — and it's the one category that automated scanners tend to miss, because it requires understanding _whose data is whose_ (business context), not just checking if a token is valid. That's exactly why it fits TaloTrace's "business-knowledge-grounded testing" pitch rather than being commodity work.
+
