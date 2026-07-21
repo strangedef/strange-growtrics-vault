@@ -10,3 +10,5 @@
 - How `wrong-scope` is defined/verified when the client's auth scheme has no formal scope concept (e.g. a plain API key) — may only be meaningfully testable for OAuth2 clients.
 - **Whether property-based fuzzing needs a cap on generated cases per parameter (to avoid combinatorial blow-up on endpoints with many parameters).**
 - Severity mapping for negative/schema/auth findings specifically (Tier 0's open question on `Finding` severity taxonomy now needs to account for per-category differences, e.g. a BOLA failure is presumably higher severity than a missing pagination `hasNext` field).
+
+How do we eliminate what we don't know that we don't know
