@@ -71,12 +71,16 @@ If yes → move on to Tier 1. If no → stop and improve the generation quality 
 
 It's a checkpoint to make sure the core differentiator (smarter test generation) is real before building the rest of the product on top of it.
 
-# Tier 0 questions
 
-1. **Change-detection mechanism** — scheduled re-validation, spec-diff, or continuous monitoring? (owner: Khoa Hung, due Jul 16)
-2. **Can API testing reuse the existing app-graph** (`app_graph_reader.py`), or does it need its own representation?
-3. **Does `services/knowledge_base/` already hold product knowledge**, or is it not built yet?
-4. **What's the real quality gap between baseline (spec + product knowledge) vs. enhanced (+ codebase) generation** — worth pushing clients to connect GitHub?
-5. **Does generation pass the gate** — is it genuinely smarter than free Postman/Schemathesis?
+### Does testing BOLA/BFLA per enpoint cover wrong-scope check
 
-**Not yet asked, worth adding:** 6. How do we trace a field-level spec change back to the right endpoint-level tests? (needed for Tier 2's "affected tests only")
+Yes — for what wrong-scope was actually trying to protect against, comprehensive BOLA/BFLA per-endpoint testing covers it, **with one condition**: the client's role/permission model has to be captured and fed into the system first (the onboarding gap flagged earlier).
+
+To be precise about _why_ this holds:
+
+**What wrong-scope was checking:** "is this credential being used for something it wasn't issued permission to do?" — mechanically verified by reading the token's declared scope.
+
+**What BOLA/BFLA checks instead:** the same underlying question — "should this credential be allowed to do this?" — just verified by replaying the request as different roles/accounts and checking the response, rather than by reading a scope field off the token.
+
+- **BFLA** (vertical + horizontal) → catches "wrong function" cases, which is what wrong-scope was mostly protecting against for OAuth2 clients (a read-only-scoped token trying to write, a sales-scoped token trying to hit an admin endpoint)
+- **BOLA** → catches "wrong data owner" cases, which formal scope systems don't even really cover well in the first place (scope says _what actions_ a token can do, not _whose data_ it can touch)
