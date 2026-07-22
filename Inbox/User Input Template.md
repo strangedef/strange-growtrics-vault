@@ -19,17 +19,17 @@ roles:
 credentials:
   admin:
     - id: adminA
-      token: <token/login ref>
+      auth_config: <token/login ref>
 
   user:
     - id: userA
-      token: <token/login ref>
+      auth_config: <token/login ref>
     - id: userB
-      token: <token/login ref>
+      auth_config: <token/login ref>
 
   guest:
     - id: guestA
-      token: <token/login ref>
+      auth_config: <token/login ref>
 
 # ==========================================
 # 3. RESOURCES — endpoint-level authz rules
