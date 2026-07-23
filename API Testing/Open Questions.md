@@ -20,3 +20,5 @@
 | Expired-credentials mechanism | Later (non-vital) | Not generated; candidate mechanisms are a token-gen endpoint with a TTL/`exp` param or a client-supplied static expired token |
 | Per-parameter fuzzing case cap | Later (no evidence yet) | Generate the full mutation set; add a cap only if combinatorial volume on wide endpoints proves a real problem |
 | `Finding` severity mapping across categories | Later (no requirement yet) | No severity taxonomy; decide once real findings exist to calibrate against (shared with Tier 0's §7 deferral) |
+- multiple agent design
+- 
