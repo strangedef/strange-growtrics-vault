@@ -11,4 +11,12 @@
 - **Whether property-based fuzzing needs a cap on generated cases per parameter (to avoid combinatorial blow-up on endpoints with many parameters).**
 - Severity mapping for negative/schema/auth findings specifically (Tier 0's open question on `Finding` severity taxonomy now needs to account for per-category differences, e.g. a BOLA failure is presumably higher severity than a missing pagination `hasNext` field).
 
-How do we eliminate what we don't know that we don't know
+- How do we eliminate what we don't know that we don't know
+
+##  Deferred Items (Tier 1)
+| Item | Deferred to | Current default |
+|---|---|---|
+| `create_via` auto-seeding + authz on mutating actions (PUT/DELETE) | **Tier 2** | Not generated; gated by Tier 1's GET/HEAD-only method scope |
+| Expired-credentials mechanism | Later (non-vital) | Not generated; candidate mechanisms are a token-gen endpoint with a TTL/`exp` param or a client-supplied static expired token |
+| Per-parameter fuzzing case cap | Later (no evidence yet) | Generate the full mutation set; add a cap only if combinatorial volume on wide endpoints proves a real problem |
+| `Finding` severity mapping across categories | Later (no requirement yet) | No severity taxonomy; decide once real findings exist to calibrate against (shared with Tier 0's §7 deferral) |
