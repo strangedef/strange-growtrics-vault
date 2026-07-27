@@ -22,7 +22,24 @@
 | `Finding` severity mapping across categories | Later (no requirement yet) | No severity taxonomy; decide once real findings exist to calibrate against (shared with Tier 0's §7 deferral) |
 - multiple agent design
 
-## Knowledge base ingestion
+# Knowledge base ingestion
+### Generating rules/invariants
+A list like:
+
+- Event dates must be in the future
+- Prices must be positive
+- A completed order has a payment record
+- Booking status can only be: pending, confirmed, cancelled
+
+Each rule is one row in the database. That's it. That's the whole idea.
+
+### One warning
+
+Onboarding docs are full of real passwords and real customer data. Scan and strip that at ingest, before anything goes near a prompt.
+
+### What to build in the spike
+
+Upload docs → split into chunks → one LLM call per chunk to extract rules → tag each rule with its entity → match to endpoints by name.
 
 ### Why it's worth the extra table (fields)
 
