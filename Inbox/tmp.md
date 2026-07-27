@@ -17,3 +17,5 @@ resources:
 
 - I want the system can automatically fill the ResourceMap via inference from the knowledge base
 - business logic assertions
+- full testing workflow
+- 
