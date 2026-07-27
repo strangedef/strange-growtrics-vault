@@ -21,4 +21,25 @@
 | Per-parameter fuzzing case cap | Later (no evidence yet) | Generate the full mutation set; add a cap only if combinatorial volume on wide endpoints proves a real problem |
 | `Finding` severity mapping across categories | Later (no requirement yet) | No severity taxonomy; decide once real findings exist to calibrate against (shared with Tier 0's §7 deferral) |
 - multiple agent design
-- 
+
+## Knowledge base ingestion
+
+### Why it's worth the extra table (fields)
+
+Four things break without field-level links:
+
+**Assertion construction.** "Prices must be positive" is useless unless generation knows to check `response.body.price`. A rule with no field attached can't become an assertion.
+
+**Affected-only regeneration (Tier 2).** The spec changes `price` from integer to decimal. With field links: find rules touching `Booking.price`, regenerate just those tests. Without: you regenerate everything touching `Booking`, which is most of the suite. The whole "small, reviewable diff" promise depends on this precision.
+
+**Conflict detection.** You can only spot "docs say X, code says Y" if both facts are keyed to the same field. No field key, no conflicts.
+
+**Coverage attribution.** "Which rules aren't tested yet" needs to resolve to something concrete.
+
+### But rules aren't one-field
+
+Three shapes show up:
+
+- **Single field** — "event_date must be in the future"
+- **Cross-field** — "if status is `completed`, payment_id must be non-null" (two fields, different roles)
+- **Entity or workflow level** — "a cancelled booking cannot be reactivated" (no field at all; it's about state transitions)
