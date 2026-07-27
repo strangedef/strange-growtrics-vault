@@ -14,3 +14,7 @@ resources:
       update: { method: PUT,    path: /orders/{id}, allowed_roles: [user, admin], required_scope: "write:own" }
       delete: { method: DELETE, path: /orders/{id}, allowed_roles: [admin],       required_scope: "write:own" }
 ```
+
+- we will fill the ResourceMap via inference from the knowledge base
+- 
+- 
