@@ -16,6 +16,7 @@ resources:
 ```
 
 - I want the system can automatically fill the ResourceMap via inference from the knowledge base
-- business logic assertions
+- business logic assertions (cross-field)
 - full testing workflow
-- 
+### When Requirement change
+- Keep a pointer from each rule back to the paragraph it came from so you can go fetch the full text when you need it.

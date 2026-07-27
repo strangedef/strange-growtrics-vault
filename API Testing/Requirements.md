@@ -97,5 +97,3 @@ the format is standardized (OAuth2 spec), but the mapping of scope→endpoint is
 | `delete:bookings` | Can cancel/delete bookings                       | `DELETE /bookings/{id}`                         |
 | `read:users`      | Can view user profiles                           | `GET /users/{id}`                               |
 | `admin:users`     | Can manage user accounts (create/suspend/delete) | `POST /admin/users`, `DELETE /admin/users/{id}` |
-### When Requirement change
-- Keep a pointer from each rule back to the paragraph it came from so you can go fetch the full text when you need it.
