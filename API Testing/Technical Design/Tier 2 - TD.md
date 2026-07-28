@@ -636,29 +636,29 @@ The `Credential` entity stores client API secrets **unencrypted in the app DB** 
 
 **Architecture & data**
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| Structure | Single service, staged pipeline, versioned immutable artifacts | "Fast and minimal" execution infra; versioning is the maintenance backbone, built in from day one |
-| Multi-tenancy | `app_id`/`project_id` opaque FKs on `Target` | Matches platform partitioning; tenancy model itself out of scope |
-| LLM retry policy | Defer to codebase's shared LLM client | Not a decision to invent in isolation |
-| Engine testing | Fixtures + mock HTTP server for deterministic parts; no generation-quality eval harness (yet) | Parsing/execution is conventionally testable; a golden-reference LLM eval is premature |
+| Decision         | Choice                                                                                        | Rationale                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Structure        | Single service, staged pipeline, versioned immutable artifacts                                | "Fast and minimal" execution infra; versioning is the maintenance backbone, built in from day one |
+| Multi-tenancy    | `app_id`/`project_id` opaque FKs on `Target`                                                  | Matches platform partitioning; tenancy model itself out of scope                                  |
+| LLM retry policy | Defer to codebase's shared LLM client                                                         | Not a decision to invent in isolation                                                             |
+| Engine testing   | Fixtures + mock HTTP server for deterministic parts; no generation-quality eval harness (yet) | Parsing/execution is conventionally testable; a golden-reference LLM eval is premature            |
 
 **Inputs & registration**
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| Spec formats | OpenAPI 3.x, Swagger 2.0, Postman, Insomnia | Covers clients with only an internal collection |
-| Auth support | API key, Bearer, OAuth2 client-credentials | Realistic majority of client APIs |
-| Environments | Multiple per target from the start | One suite spans dev/staging/prod; cheap vs. retrofitting |
-| Knowledge input | PDF/DOCX + Confluence/Linear; auth/fetch is platform infra | How clients hold product knowledge; needs extraction, not structured entry |
-| Client secret storage | `Credential` entity, unencrypted interim; encryption deferred (§10) | No vault exists; storage required for unattended runs. Deliberate, time-boxed |
-| Resource model | Shared `ResourceMap`; `AuthProfile` = roles + credentials only | One client declaration serves both auth and CRUD generation |
-| Resource-model source | **Inferred from the knowledge base**, spec used as validator (§5.2) | The spec cannot express authz or ownership at all; the client already wrote both in prose. Transcribing a resource model by hand is the largest onboarding cost the product can delete |
-| Inference gate | Auto-apply above a confidence threshold; below → field unset + `ReviewRequest` to a TaloTrace reviewer | Keeps "client closes their eyes"; an unset field degrades one operation, not the resource |
-| Mutating-operation safety | Two signals required: spec-backed endpoint **and** prose that explicitly describes the operation | Path symmetry alone is not evidence of intent; mirrors the pagination two-signal rule. Backed by `create_via` — an auto-applied delete only removes rows the suite created |
-| Declared vs inferred | One live entity with per-field `provenance`; precedence `client_declared` > `inferred_knowledge` > `inferred_spec` | Generation reads one view with no merge logic; client input is never overwritten, only supersedes |
-| Inference persistence | Immutable versioned `ResourceInference` beside the live merged map | The proposal must be diffable and reviewable; a live-only map would let a re-run silently rewrite the resource model |
-| AuthProfile inference | Roles + scopes inferred; credentials never. Gaps surface as `identity_slots[]` | An inferred `allowed_roles` is meaningless unless the role exists; secrets are the one thing only the client holds |
+| Decision                  | Choice                                                                                                             | Rationale                                                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spec formats              | OpenAPI 3.x, Swagger 2.0, Postman, Insomnia                                                                        | Covers clients with only an internal collection                                                                                                                                        |
+| Auth support              | API key, Bearer, OAuth2 client-credentials                                                                         | Realistic majority of client APIs                                                                                                                                                      |
+| Environments              | Multiple per target from the start                                                                                 | One suite spans dev/staging/prod; cheap vs. retrofitting                                                                                                                               |
+| Knowledge input           | PDF/DOCX + Confluence/Linear; auth/fetch is platform infra                                                         | How clients hold product knowledge; needs extraction, not structured entry                                                                                                             |
+| Client secret storage     | `Credential` entity, unencrypted interim; encryption deferred (§10)                                                | No vault exists; storage required for unattended runs. Deliberate, time-boxed                                                                                                          |
+| Resource model            | Shared `ResourceMap`; `AuthProfile` = roles + credentials only                                                     | One client declaration serves both auth and CRUD generation                                                                                                                            |
+| Resource-model source     | **Inferred from the knowledge base**, spec used as validator (§5.2)                                                | The spec cannot express authz or ownership at all; the client already wrote both in prose. Transcribing a resource model by hand is the largest onboarding cost the product can delete |
+| Inference gate            | Auto-apply above a confidence threshold; below → field unset + `ReviewRequest` to a TaloTrace reviewer             | Keeps "client closes their eyes"; an unset field degrades one operation, not the resource                                                                                              |
+| Mutating-operation safety | Two signals required: spec-backed endpoint **and** prose that explicitly describes the operation                   | Path symmetry alone is not evidence of intent; mirrors the pagination two-signal rule. Backed by `create_via` — an auto-applied delete only removes rows the suite created             |
+| Declared vs inferred      | One live entity with per-field `provenance`; precedence `client_declared` > `inferred_knowledge` > `inferred_spec` | Generation reads one view with no merge logic; client input is never overwritten, only supersedes                                                                                      |
+| Inference persistence     | Immutable versioned `ResourceInference` beside the live merged map                                                 | The proposal must be diffable and reviewable; a live-only map would let a re-run silently rewrite the resource model                                                                   |
+| AuthProfile inference     | Roles + scopes inferred; credentials never. Gaps surface as `identity_slots[]`                                     | An inferred `allowed_roles` is meaningless unless the role exists; secrets are the one thing only the client holds                                                                     |
 
 **Generation**
 

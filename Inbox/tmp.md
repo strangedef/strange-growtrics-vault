@@ -42,7 +42,8 @@ C. Smaller gaps
 
 C1. OpenAPI does carry some authz. §5.2's table says the spec is "Absent — OpenAPI has no authz semantics" (line 210). Not quite: securitySchemes + per-operation security give OAuth2 scope names and which endpoints require auth at all. That's a free third signal — it would let pass 3 validate inferred required_scope against the API's real scope vocabulary instead of trusting an LLM-invented string.
 
-C2. StructuralClaim IDs aren't declared stable across versions. Invariants get an explicitly stable id carried by predicate/semantic match. Claims just have id (line 416) — but §7's row "structural claim changed, source chunk hash unchanged → suppress" requires matching a claim to its previous-version self. Without stable claim identity that rule can't execute.
+**C2. StructuralClaim IDs aren't declared stable across versions. Invariants get an explicitly stable id carried by predicate/semantic match. Claims just have id (line 416) — but §7's row "structural claim changed, source chunk hash unchanged → suppress" requires matching a claim to its previous-version self. Without stable claim identity that rule can't execute.**
+-> what happen when user update doc
 
 C3. Pass 2 doesn't scale, and has no fallback. It's one LLM call holding the full claim set plus the entire SpecArtifact endpoint list. On a large API that exceeds context, and there's no batching or degradation path — unlike pass 1, which degrades per chunk.
 
