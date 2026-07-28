@@ -20,6 +20,7 @@ resources:
 - full testing workflow
 ### When Requirement change
 - Keep a pointer from each rule back to the paragraph it came from so you can go fetch the full text when you need it.
+
 B. Missing workflow pieces — these need decisions
 
 B1. Nothing says when a suite actually runs. This is the biggest hole. The maintenance loop ends at "client consumes updated suite + report" (line 323), but:
