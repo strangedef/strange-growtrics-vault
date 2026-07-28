@@ -20,3 +20,6 @@ each target should have app_id and project_id fields to comply with the existing
 ```
 - > _"Compile our technical design discussion into a clean, comprehensive Markdown file. Include headings, bullet points, system architecture details, and fenced code blocks. Save it as `DESIGN.md` in the root directory."_
 ```
+
+### Simplify
+- make it simple, break it down to problem (a few bullet points, give example to clarify the problem)

@@ -1,6 +1,6 @@
 -  is item_path and collection_path redundant as in each operation, we already have path
 - does the requirement need teardown
-- why don't group authz into operations like what we did in resouces[]?
+- ~~why don't group authz into operations like what we did in resouces[]? ~~
 
 ```yaml
 resources:
