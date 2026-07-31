@@ -1,0 +1,3 @@
+- invariants field -> predicate != req/res field
+- chunking strategy -> section/heading -> docs change -> chunk changes -> tests change
+- 
