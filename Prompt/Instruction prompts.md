@@ -23,3 +23,9 @@ each target should have app_id and project_id fields to comply with the existing
 
 ### Simplify
 - make it simple, break it down to problem (a few bullet points, give example to clarify the problem)
+
+### Implement Technical Design by Phases
+
+```
+Read PLAN.md and the design doc at docs/design.md. Implement only Phase 1: <name>. Do not touch code related to Phase 2+. Look at the existing codebase structure first (package.json / relevant modules) before writing anything, and match existing patterns.
+```
