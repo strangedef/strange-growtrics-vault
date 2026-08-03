@@ -62,3 +62,15 @@ Rest are not testcases:
 - Benchmark scoring, PR_CHECK, HITL continuation — other machinery.
 
 So mapping: scenario = testcase (title/goal/steps, stored in catalog). Job = "do this unit of work" — sometimes that work is "execute testcase X", often it's generation, analysis, or bookkeeping around it. One testcase can also spawn multiple jobs over its life: executed by navigation job today, re-run tomorrow, its video analyzed by another job after.
+
+### Workflow
+run_execution owns 3, 4, 6, 7 — the middle of the pipeline:
+
+- 3 · Onboard — control-plane role. Validates app/url, queues SCENARIO_GEN.
+- 4 · Exploration job — device-plane role. Host-agent claim loop, opencode harness, Appium/Playwright MCP layers. Also the finalize half: reads emitted scenarios, generates derived extras (input permutations, coverage), pushes proposals to scenarios service — so the arrow into box 5 is run_execution code too.
+- 6 · Suite + Run — control-plane role. Suite entities, run_suite, run rows, NAV-job fan-out.
+- 7 · Execution — device-plane role. Same claim loop + harness re-driving scenarios, artifact upload, then kicks the analyze fan-in that hands off to triage.
+
+Not its: 1–2 (auth, knowledge_base), 5 (scenarios service — catalog storage/curation), 8–9 (triage).
+
+Mnemonic: run_execution = everything between "user clicked go" and "artifacts exist". Other services store, judge, notify.
