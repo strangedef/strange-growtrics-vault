@@ -2,14 +2,14 @@ Good frame — most of the concepts map over, but a few key differences trip peo
 
 ## Quick mapping
 
-|Django|Alembic|Notes|
-|---|---|---|
-|`makemigrations`|`alembic revision --autogenerate -m "..."`|Same idea: diff models vs. last known state|
-|`migrate`|`alembic upgrade head`|Apply pending migrations|
-|`migrate app 0003`|`alembic upgrade <revision>`|Go to a specific point|
-|`migrate app zero`|`alembic downgrade base`|Roll back everything|
-|`showmigrations`|`alembic history` + `alembic current`|Split into two commands instead of one|
-|`django_migrations` table|`alembic_version` table|Tracks applied state — but see below, this is a big difference|
+| Django                    | Alembic                                    | Notes                                                          |
+| ------------------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| `makemigrations`          | `alembic revision --autogenerate -m "..."` | Same idea: diff models vs. last known state                    |
+| `migrate`                 | `alembic upgrade head`                     | Apply pending migrations                                       |
+| `migrate app 0003`        | `alembic upgrade <revision>`               | Go to a specific point                                         |
+| `migrate app zero`        | `alembic downgrade base`                   | Roll back everything                                           |
+| `showmigrations`          | `alembic history` + `alembic current`      | Split into two commands instead of one                         |
+| `django_migrations` table | `alembic_version` table                    | Tracks applied state — but see below, this is a big difference |
 
 ## The important structural differences
 
