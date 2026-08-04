@@ -1,3 +1,4 @@
+# Onboarding Investigation Tasks
 **Task 1 — Scenario generation**
 
 - What does the app-knowledge representation (`app_graph_reader.py`) actually capture?
