@@ -29,3 +29,10 @@ each target should have app_id and project_id fields to comply with the existing
 ```
 Read PLAN.md and the design doc at docs/design.md. Implement only Phase 1: <name>. Do not touch code related to Phase 2+. Look at the existing codebase structure first (package.json / relevant modules) before writing anything, and match existing patterns.
 ```
+
+```
+❯ I imagine the registration flow would look like this:
+  Base URL: https://api.staging.modun.vn/v1
+  Environment: "Staging"
+  Authentication: Selecting a stored "API Key" or "Token" from the existing credentials or create new.
+```
