@@ -20,3 +20,12 @@ DOES happen (thin, mechanical):
 5. PDF/DOCX "processing" deferred to LLM — original file attached as multimodal part at generation time; OpenRouter side parses it. So doc IS understood — just at use time by model, not at upload time by us.
 
 Design bet: docs small enough (10MB cap) that raw-at-generation beats index-maintain-sync complexity. Trade: every generation pays full doc cost in tokens; no semantic search. Fine at current scale.
+
+### Flaky tests
+Three fails, two root causes:
+
+1. Recorder-selection test — test asserts CDP recorder, but CI runners have no Chromium binary, so the code takes its documented x11grab fallback. Test encodes a host assumption the runner never satisfied. Deterministic, not flaky. Now fixed (pin the probe).
+
+2 & 3. Saga drain + photo_encoding teardown — shared CI Postgres is contended, and a leaked INTRANS connection starves the pool. Timing-sensitive tests lose the race and hit statement timeouts. Flaky, load-dependent, pre-existing in the test harness.
+
+Neither is caused by the api_testing branch. #1 was blocking every PR; #2/#3 rotate victims run to run and want a proper harness fix (find the connection leak) rather than more timeout padding.
