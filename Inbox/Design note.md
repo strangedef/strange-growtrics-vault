@@ -70,3 +70,9 @@ How the case borrows it. No structural link — no test_case_id → step FK anyw
 Failure path: if the create fails or the resource has no licensed create, fallbacks in order — borrow an id via list (GET /orders, capture an existing id — but never for mutating ops like update against client data), else the case is skipped with missing_seed_value and surfaces in the readiness view.
 
 Caveat: this is Tier 2a design, not built yet — exact runner sequencing (seed-then-case ordering) is execution-engine behavior the doc describes functionally, not an entity relationship in the data model.
+
+### Reason split
+1. Execution contract — the real one. Case: order-free, parallel, dedupable, retry/retire independently. Scenario: strict DAG, captured state threads between steps, step failure cancels dependents. Runner needs two different engines regardless of storage.
+2. Failure semantics. Seed failure on case = skipped; step failure in scenario = failed + dependents skipped. Different state machines, different skip reasons.
+3. Maintenance granularity. Spec change on one endpoint retires/regenerates individual cases; scenario regenerates as whole route (change to update invalidates read-back after it).
+4. Category/coverage reporting — consequence of 1-3, not cause. Case has one category; scenario is category-less workflow. Split keeps GROUP BY category trivial.
