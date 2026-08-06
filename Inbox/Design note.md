@@ -26,3 +26,6 @@ Two places — one for use during the run, one for the record afterwards:
 Because they obey different execution contracts. A test case is independent: run in any order, in parallel, dedupe identical requests, retry or retire one without touching anything else. A scenario is a stateful sequence: strict order, values captured from earlier steps feed later ones, a failed step cancels its dependents.
 
 Splitting the entities lets the runner, the coverage report (which groups by per-case `category`), and the skip/failure logic each dispatch on type instead of guessing from step count. Merging them would save one table but smear those two contracts into one entity with conditionals everywhere.
+
+- TestCase — standalone; has a category, runs independently (any order, parallel), produces a RunResult
+- ScenarioStep — only exists inside a scenario's steps[]; has depends_on and capture, produces a StepResult
