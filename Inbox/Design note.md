@@ -52,3 +52,14 @@ Test cases (single-call, on GET /orders/{id}):
       - Cross-resource chain: create product → create order with product_id → read order
       - Delete-then-read: create, delete, get → 404
       - BOLA setup via create_via: each identity creates its own order, then cross-identity reads assert denial
+
+### problem no link testcase -> step
+How the case borrows it. No structural link — no test_case_id → step FK anywhere. The coupling is data-only:
+
+1. Runner executes the seeding create, captured order_id lands in the in-memory per-run variable context (and is recorded in StepResult.captured{} for audit).
+2. The test case's request_template has a placeholder path param (PUT /orders/{order_id}); the runner injects the captured value when firing the request.
+3. Case evaluates its own assertions against its own response, writes its own RunResult.
+
+Failure path: if the create fails or the resource has no licensed create, fallbacks in order — borrow an id via list (GET /orders, capture an existing id — but never for mutating ops like update against client data), else the case is skipped with missing_seed_value and surfaces in the readiness view.
+
+Caveat: this is Tier 2a design, not built yet — exact runner sequencing (seed-then-case ordering) is execution-engine behavior the doc describes functionally, not an entity relationship in the data model.
