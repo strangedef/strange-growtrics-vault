@@ -66,3 +66,12 @@ A ─── B ─── C ─── D' ─── E' [feature / HEAD]
 - `rebase --onto` is a cut-paste tool for entire branches. The branch you are on gets re-anchored to a new spot.
 
 Does seeing how the `feature` label stays behind vs. moves forward make the difference clear?
+
+# Multiple github profiles
+```
+Cause: You have two gh accounts (strangenguyen active, strangedef owner of this repo). The gh auth git-credential helper only ever uses the active account, so pushes went out as strangenguyen → 403 denied.
+Fix (repo-only, via git config --local):
+- credential.https://github.com.username=strangedef — keeps the gh helper silent for this repo
+- credential.helper=!~/.local/bin/git-credential-strangedef — a small helper that reads strangedef's token from the macOS keychain on demand (no token stored in plaintext)
+Other repos keep using strangenguyen; only this vault pushes as strangedef. All 25 commits are now on origin/main.
+```
