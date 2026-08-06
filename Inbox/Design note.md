@@ -16,3 +16,9 @@ Symmetry: StepResult is to ScenarioRun what RunResult is to SuiteRun — but emb
 Outcomes: pass | fail | error | skipped on both. Scenario-specific: step failure skips transitive depends_on dependents, their StepResults come out skipped with unmet-dependency reason; scenario outcome aggregates.
 
 Finding references either via test_ref; evidence chain resolves into RunResult.evidence or step's captured/evidence data.
+### Where does it store state of previous step
+Two places — one for use during the run, one for the record afterwards:
+
+1. In memory, during execution. While the runner walks a scenario, captured values live in a per-scenario-run variable context held by the runner itself. Each step declares what to capture via its capture field (ScenarioStep.capture{var → body JSONPath / Location header / status}) — e.g. s1 captures order_id from the create response body. Later steps reference that named variable in their request templates (GET /orders/{order_id}), and assertions can also address prior steps directly (e.g. s1.response.total). This context is scoped to the single scenario run — it isn't shared across scenarios or across runs.
+
+2. Persisted, after each step. Each step's result is written to StepResult.captured{} (embedded in the ScenarioRun). That's the durable record — it's evidence for the audit trail ("the id we deleted in s5 is the one s1 created"), not the mechanism later steps read from at runtime.
