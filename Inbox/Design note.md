@@ -30,6 +30,13 @@ Splitting the entities lets the runner, the coverage report (which groups by per
 - TestCase — standalone; has a category, runs independently (any order, parallel), produces a RunResult
 - ScenarioStep — only exists inside a scenario's steps[]; has depends_on and capture, produces a StepResult
 
+> do you mean that the testcenarios is only used to test CRUD, other testcases can use resoucemap to create object for their test, correct?
+
+Correct, two halves:
+
+TestScenario = lifecycle/workflow testing. State transitions as the thing under test: create → … → delete → read-404, cross-resource chains (product before order), update-persists. ResourceMap defines route (per-CRUD-verb method+path); scenario asserts every step.
+
+TestCase = single assertion; ResourceMap powers its setup. create_via uses same licensed create operation to seed an object, unasserted, just to have something to shoot at. Seeding failure = case skipped, never failed.
 ### Examples
 > ❯ for example I want to test update then get object, but to get it I have to create it beforehand, what are possible testcases and testscenarios, only name list of example tests
 
