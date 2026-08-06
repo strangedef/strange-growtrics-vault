@@ -31,6 +31,8 @@ Splitting the entities lets the runner, the coverage report (which groups by per
 - ScenarioStep — only exists inside a scenario's steps[]; has depends_on and capture, produces a StepResult
 
 ### Examples
+> ❯ for example I want to test update then get object, but to get it I have to create it beforehand, what are possible testcases and testscenarios, only name list of example tests
+
 Test cases (single-call, on GET /orders/{id}):
 
 - functional — get order returns 200 + required fields
